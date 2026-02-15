@@ -16,7 +16,7 @@ type Store struct {
 type ITaskStore interface {
 	Create(ctx context.Context, task *entity.Task) error
 	GetByID(ctx context.Context, id, userID string, isAdmin bool) (*entity.Task, error)
-	List(ctx context.Context, userID string, isAdmin bool, status string, limit int, scrollID string) ([]entity.Task, int, string, error)
+	List(ctx context.Context, userID string, isAdmin bool, limit int, scrollID, status string) ([]entity.Task, int, string, error)
 	Delete(ctx context.Context, id, userID string, isAdmin bool) error
 	UpdateStatus(ctx context.Context, id, status string) error
 	GetPendingTasks(ctx context.Context, olderThan int) ([]entity.Task, error)

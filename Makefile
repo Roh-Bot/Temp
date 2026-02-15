@@ -15,6 +15,14 @@ run: ## Run the application
 test: ## Run tests
 	go test -v ./...
 
+test-coverage: ## Run tests with coverage
+	go test -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out -o coverage.html
+	@echo "Coverage report: coverage.html"
+
+test-unit: ## Run unit tests only
+	go test -v ./cmd/api ./internal/application ./internal/worker
+
 clean: ## Clean build artifacts
 	rm -rf bin/
 

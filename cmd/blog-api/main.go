@@ -72,6 +72,7 @@ func main() {
 	validator2 := validator.NewValidator()
 
 	taskWorker := worker.NewTaskWorker(newStore, newLogger, cfg.Get().AutoCompleteMin)
+	appCtx.Add(1)
 	taskWorker.Start(appCtx.Context())
 
 	server := api.NewServer(cfg, services, validator2, newLogger, appCtx)
