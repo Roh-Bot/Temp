@@ -1,0 +1,33 @@
+Application:
+  address: "0.0.0.0:8000"
+
+Logger:
+  level: "info"
+  enable_stdout: true
+  buffer_size: 200000
+  batch_size: 10000
+  flush_delay: 30ms
+
+Auth:
+  secret: "RWAjFqBWioBhkRvTDJDfuyJO7lONAET3onIz6wSWwaY="
+  issuer: "TaskManager"
+  audience: "TaskApp"
+  token_ttl: 15
+
+Database:
+  host: db
+  port: 5432
+  user: postgres
+  password: admin
+  database: taskmanager
+  ssl_mode: disable
+  max_connection_idle_time: 30m
+  max_connection_lifetime: 1h
+
+AutoCompleteMin: 5
+
+RateLimit:
+  global_rate: 100
+  global_burst: 200
+  ip_rate: 10
+  ip_burst: 20

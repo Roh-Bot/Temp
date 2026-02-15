@@ -1,0 +1,24 @@
+basePath: /api
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+    url: http://www.example.com/support
+  description: Blog API with JWT authentication
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Blog API
+  version: "1.0"
+paths: {}
+schemes:
+- https
+- http
+securityDefinitions:
+  ApiKeyAuth:
+    description: Type "Bearer" followed by a space and the JWT token
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

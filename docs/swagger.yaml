@@ -1,0 +1,450 @@
+basePath: /api
+definitions:
+  api.AddPostRequest:
+    properties:
+      AuthorName:
+        description: |-
+          Author's name
+          required: true
+          example: Rohit
+        type: string
+      Content:
+        description: |-
+          Main content of the post
+          required: true
+          example: Hello World!
+        type: string
+      Description:
+        description: |-
+          Post description
+          required: true
+          example: A sample post
+        type: string
+      IsPublished:
+        description: |-
+          Post visibility status
+          required: true
+          example: true
+        type: boolean
+      Slug:
+        description: |-
+          Unique slug for the post
+          required: true
+          example: my-first-post
+        type: string
+      Tags:
+        description: |-
+          Tags associated with the post
+          example: ["go", "fiber"]
+        items:
+          type: string
+        type: array
+      Title:
+        description: |-
+          Post title
+          required: true
+          example: MyFirstPost
+        maxLength: 100
+        type: string
+    required:
+    - AuthorName
+    - Content
+    - Description
+    - IsPublished
+    - Slug
+    - Title
+    type: object
+  api.AuthLoginUserRequest:
+    properties:
+      Username:
+        description: |-
+          Username for authentication
+          required: true
+          example: admin
+        type: string
+    required:
+    - Username
+    type: object
+  api.AuthLoginUserResponse:
+    properties:
+      AccessToken:
+        description: |-
+          JWT access token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  api.AuthLoginWrappedResponse:
+    properties:
+      Data:
+        allOf:
+        - $ref: '#/definitions/api.AuthLoginUserResponse'
+        description: 'example: {"AccessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."}'
+      Error:
+        description: 'example: ""'
+        type: string
+      Status:
+        description: 'example: 1'
+        type: integer
+    type: object
+  api.GetPostsResponse:
+    properties:
+      AuthorName:
+        description: |-
+          Author's name
+          example: Rohit
+        type: string
+      Content:
+        description: |-
+          Post content
+          example: This is the main content of the post.
+        type: string
+      Description:
+        description: |-
+          Post description
+          example: This is a short description of the blog post.
+        type: string
+      Id:
+        description: |-
+          Post ID
+          example: 1
+        type: integer
+      PublishedAt:
+        description: |-
+          Published at datetime
+          example: 2006-01-02 15:05:05
+        type: string
+      Slug:
+        description: |-
+          Post slug
+          example: my-first-post
+        type: string
+      Tags:
+        description: |-
+          Tags associated with the post
+          example: ["go", "fiber"]
+        items:
+          type: string
+        type: array
+      Title:
+        description: |-
+          Post title
+          example: My First Post
+        type: string
+    type: object
+  api.GetPostsWrapperResponse:
+    properties:
+      Data:
+        description: 'example: {"AccessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."}'
+        items:
+          $ref: '#/definitions/api.GetPostsResponse'
+        type: array
+      Error:
+        description: 'example: ""'
+        type: string
+      Status:
+        description: 'example: 1'
+        type: integer
+    type: object
+  api.Response:
+    properties:
+      Data:
+        description: |-
+          Data actual response data
+          example: Success
+      Error:
+        description: |-
+          Error message
+          example: Something went wrong
+        type: string
+      Status:
+        description: |-
+          Status
+          example: 1 / -1
+        type: integer
+    type: object
+  api.UpdatePostRequestBody:
+    properties:
+      AuthorName:
+        description: |-
+          Optional: updated author name
+          example: RohitDev
+        type: string
+      Content:
+        description: |-
+          Optional: updated content
+          example: Updated blog content here...
+        type: string
+      Description:
+        description: |-
+          Optional: updated description
+          example: Updated description
+        type: string
+      IsPublished:
+        description: |-
+          Optional: updated visibility
+          example: false
+        type: boolean
+      Slug:
+        description: |-
+          Optional: updated slug
+          example: updated-post-title
+        type: string
+      Tags:
+        description: |-
+          Optional: updated tags
+          example: ["go", "api"]
+        items:
+          type: string
+        type: array
+      Title:
+        description: |-
+          Optional: updated title
+          example: Updated Post Title
+        maxLength: 100
+        type: string
+    type: object
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+    url: http://www.example.com/support
+  description: Blog API with JWT authentication
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Blog API
+  version: "1.0"
+paths:
+  /authentication/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and get JWT token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/api.AuthLoginUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Authentication successful
+          schema:
+            $ref: '#/definitions/api.AuthLoginWrappedResponse'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/api.Response'
+        "401":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/api.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.Response'
+      summary: User login
+      tags:
+      - Authentication
+  /blog-post:
+    get:
+      consumes:
+      - application/json
+      description: Get a single blog post by ID or all posts if ID is 0
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.GetPostsWrapperResponse'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/api.Response'
+        "401":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/api.Response'
+        "404":
+          description: Post Not Found
+          schema:
+            $ref: '#/definitions/api.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get blog post(s)
+      tags:
+      - Blog
+  /blog-post/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes blog post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post deleted successfully
+          schema:
+            $ref: '#/definitions/api.Response'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/api.Response'
+        "401":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/api.Response'
+        "404":
+          description: Post Not Found
+          schema:
+            $ref: '#/definitions/api.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a blog post
+      tags:
+      - Blog
+    get:
+      consumes:
+      - application/json
+      description: Get a single blog post by ID or all posts if ID is 0
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.GetPostsWrapperResponse'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/api.Response'
+        "401":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/api.Response'
+        "404":
+          description: Post Not Found
+          schema:
+            $ref: '#/definitions/api.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get blog post(s)
+      tags:
+      - Blog
+    patch:
+      consumes:
+      - application/json
+      description: Updates blog post by ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated post data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/api.UpdatePostRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post updated successfully
+          schema:
+            $ref: '#/definitions/api.Response'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/api.Response'
+        "401":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/api.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Update an existing blog post
+      tags:
+      - Blog
+    post:
+      consumes:
+      - application/json
+      description: Adds a new blog post to the system
+      parameters:
+      - description: Post details
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/api.AddPostRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Post deleted successfully
+          schema:
+            $ref: '#/definitions/api.Response'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/api.Response'
+        "401":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/api.Response'
+        "404":
+          description: Post Not Found
+          schema:
+            $ref: '#/definitions/api.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Add a new blog post
+      tags:
+      - Blog
+schemes:
+- https
+- http
+securityDefinitions:
+  ApiKeyAuth:
+    description: Type "Bearer" followed by a space and the JWT token
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

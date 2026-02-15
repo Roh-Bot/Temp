@@ -1,0 +1,44 @@
+name: backend
+services:
+  api-go:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    read_only: true
+    environment:
+      - ENCRYPTION_KEY=Rohit12Tisya0907Chandrashekhar09
+    container_name: api-go
+    networks:
+      - server
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    image: api-go:1.0.0
+    restart: unless-stopped
+
+  db:
+    volumes:
+      - type: volume
+        source: postgres
+        target: /var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=taskmanager
+    ports:
+      - "5432:5432"
+    container_name: postgres
+    image: postgres:latest
+    networks:
+      - server
+
+volumes:
+  postgres:
+    name: "data"
+
+networks:
+  server:
+    name: "server"
+    driver: bridge
+    internal: true
