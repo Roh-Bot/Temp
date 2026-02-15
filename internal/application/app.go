@@ -18,7 +18,7 @@ type App struct {
 type ITaskUseCase interface {
 	Create(ctx context.Context, dto *CreateTaskDto) error
 	GetByID(ctx context.Context, id, userID string, isAdmin bool) (*entity.Task, error)
-	List(ctx context.Context, userID string, isAdmin bool, limit int, scrollID, status string) ([]entity.Task, int, string, error)
+	List(ctx context.Context, userID string, isAdmin bool, status string, limit int, scrollID string) ([]entity.Task, int, string, error)
 	Delete(ctx context.Context, id, userID string, isAdmin bool) error
 }
 
@@ -33,13 +33,13 @@ func NewService(config *config.AtomicConfig, auth auth.Authentication, store sto
 		Task: &TaskUseCase{
 			logger: logger,
 			config: config,
-			store:  store,
+			repo:   store.Tasks,
 		},
 		Auth: &AuthUseCase{
 			config: config,
 			logger: logger,
 			auth:   auth,
-			store:  store,
+			repo:   store.Users,
 		},
 	}
 }

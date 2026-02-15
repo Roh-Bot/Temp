@@ -29,7 +29,7 @@ services:
     ports:
       - "5432:5432"
     container_name: postgres
-    image: postgres:latest
+    image: postgres:17-alpine
     networks:
       - server
 
@@ -41,4 +41,3 @@ networks:
   server:
     name: "server"
     driver: bridge
-    internal: true

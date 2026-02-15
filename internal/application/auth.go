@@ -19,11 +19,11 @@ type AuthUseCase struct {
 	config *config.AtomicConfig
 	logger logger.Logger
 	auth   auth.Authentication
-	store  store.Store
+	repo   store.IUserStore
 }
 
 func (u *AuthUseCase) Login(ctx context.Context, username, password string) (string, error) {
-	user, err := u.store.Users.GetByUsername(ctx, username)
+	user, err := u.repo.GetByUsername(ctx, username)
 	if err != nil {
 		return "", err
 	}
@@ -61,7 +61,7 @@ func (u *AuthUseCase) Register(ctx context.Context, username, email, password, r
 		Role:     role,
 	}
 
-	return u.store.Users.Create(ctx, user)
+	return u.repo.Create(ctx, user)
 }
 
 func (u *AuthUseCase) ValidateToken(token string) (map[string]interface{}, error) {

@@ -59,7 +59,7 @@ func (s *TaskStore) List(
 	isAdmin bool,
 	status string,
 	limit int,
-	scrollToken string,
+	scrollId string,
 ) ([]entity.Task, int, string, error) {
 
 	query := `
@@ -67,7 +67,7 @@ func (s *TaskStore) List(
 		FROM list_tasks_paginated($1, $2, $3, $4, $5)
 	`
 
-	rows, err := s.db.Query(ctx, query, userID, isAdmin, status, limit, scrollToken)
+	rows, err := s.db.Query(ctx, query, userID, isAdmin, status, limit, scrollId)
 	if err != nil {
 		return nil, 0, "", err
 	}
@@ -127,6 +127,14 @@ func (s *TaskStore) UpdateStatus(ctx context.Context, id, status string) error {
 		`SELECT * FROM task_update_status($1, $2)`,
 		id,
 		status,
+	)
+	return err
+}
+
+func (s *TaskStore) AutoCompleteIfPending(ctx context.Context, id string) error {
+	_, err := s.db.Exec(ctx,
+		`SELECT * FROM task_auto_complete_if_pending($1)`,
+		id,
 	)
 	return err
 }

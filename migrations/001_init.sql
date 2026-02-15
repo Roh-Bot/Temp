@@ -243,3 +243,23 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION task_auto_complete_if_pending(
+    p_task_id VARCHAR
+)
+    RETURNS BOOLEAN
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+    rows_updated INT;
+BEGIN
+    UPDATE tasks
+    SET status = 'completed',
+        updated_at = NOW()
+    WHERE id = p_task_id
+      AND status IN ('pending', 'in_progress');
+
+    GET DIAGNOSTICS rows_updated = ROW_COUNT;
+
+    RETURN rows_updated > 0;
+END;
+$$;

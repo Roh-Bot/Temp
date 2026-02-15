@@ -71,7 +71,7 @@ func main() {
 	services := servicesv1.NewService(cfg, auth2, newStore, newLogger)
 	validator2 := validator.NewValidator()
 
-	taskWorker := worker.NewTaskWorker(newStore, newLogger, cfg.Get().AutoCompleteMin)
+	taskWorker := worker.NewTaskWorker(newStore.Tasks, newLogger, cfg.Get().AutoCompleteMin)
 	appCtx.Add(1)
 	taskWorker.Start(appCtx.Context())
 
