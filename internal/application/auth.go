@@ -27,6 +27,7 @@ func (u *AuthUseCase) Login(ctx context.Context, username, password string) (str
 	if err != nil {
 		return "", err
 	}
+
 	if user == nil {
 		return "", errors.New("invalid credentials")
 	}
@@ -53,8 +54,13 @@ func (u *AuthUseCase) Register(ctx context.Context, username, email, password, r
 		return err
 	}
 
+	id, err := uuid.NewV7()
+	if err != nil {
+		return err
+	}
+
 	user := &entity.User{
-		ID:       uuid.New().String(),
+		ID:       id.String(),
 		Username: username,
 		Email:    email,
 		Password: string(hashedPassword),
