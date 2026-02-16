@@ -1,11 +1,9 @@
 package api
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 	"sync"
 	"time"
@@ -105,16 +103,6 @@ func (s *Server) httpLogger(next echo.HandlerFunc) echo.HandlerFunc {
 
 		start := time.Now()
 
-		var reqBodyBytes []byte
-		if req.Body != nil {
-			reqBodyBytes, _ = io.ReadAll(req.Body)
-			req.Body = io.NopCloser(bytes.NewBuffer(reqBodyBytes))
-		}
-
-		var resBody bytes.Buffer
-		mw := io.MultiWriter(res.Writer, &resBody)
-		res.Writer = &bodyDumpResponseWriter{ResponseWriter: res.Writer, mw: mw}
-
 		err := next(ctx)
 		latency := time.Since(start)
 
@@ -127,11 +115,9 @@ func (s *Server) httpLogger(next echo.HandlerFunc) echo.HandlerFunc {
 			"latency_ms": latency.Milliseconds(),
 			"request": map[string]any{
 				"headers": req.Header,
-				"body":    truncateString(string(reqBodyBytes), maxLogPreview),
 			},
 			"response": map[string]any{
 				"status": res.Status,
-				"body":   truncateString(resBody.String(), maxLogPreview),
 			},
 		}
 
@@ -144,23 +130,6 @@ func (s *Server) httpLogger(next echo.HandlerFunc) echo.HandlerFunc {
 
 		return err
 	}
-}
-
-type bodyDumpResponseWriter struct {
-	io.Writer
-	http.ResponseWriter
-	mw io.Writer
-}
-
-func (w *bodyDumpResponseWriter) Write(b []byte) (int, error) {
-	return w.mw.Write(b)
-}
-
-func truncateString(s string, max int) string {
-	if len(s) > max {
-		return s[:max] + "...[truncated]"
-	}
-	return s
 }
 
 func toJSON(v any) string {

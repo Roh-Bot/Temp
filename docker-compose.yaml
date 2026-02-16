@@ -5,8 +5,6 @@ services:
       context: ./
       dockerfile: Dockerfile
     read_only: true
-    environment:
-      - ENCRYPTION_KEY=Rohit12Tisya0907Chandrashekhar09
     container_name: api-go
     networks:
       - server
