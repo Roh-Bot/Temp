@@ -48,12 +48,12 @@ func (s *Server) Run() {
 		}
 	}()
 
-	for range s.AppCtx.Context().Done() {
-		if err := s.Shutdown(); err != nil {
-			log.Println("An error occurred while shutting down the server")
-		}
-		break
+	<-s.AppCtx.Context().Done()
+
+	if err := s.Shutdown(); err != nil {
+		log.Println("An error occurred while shutting down the server")
 	}
+
 	log.Println("Server shutdown completed")
 }
 

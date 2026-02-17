@@ -1,7 +1,6 @@
 package config
 
 import (
-	"context"
 	"errors"
 	"log"
 	"os"
@@ -9,6 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/Roh-Bot/blog-api/pkg/global"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
@@ -27,12 +27,12 @@ func (a *AtomicConfig) Get() *Config {
 }
 
 type Config struct {
-	Application     Server      `koanf:"Application"`
-	Auth            Auth        `koanf:"Auth"`
-	Database        Database    `koanf:"Database"`
-	Logger          Logger      `koanf:"Logger"`
-	AutoCompleteMin int         `koanf:"AutoCompleteMin"`
-	RateLimit       RateLimit   `koanf:"RateLimit"`
+	Application     Server    `koanf:"Application"`
+	Auth            Auth      `koanf:"Auth"`
+	Database        Database  `koanf:"Database"`
+	Logger          Logger    `koanf:"Logger"`
+	AutoCompleteMin int       `koanf:"AutoCompleteMin"`
+	RateLimit       RateLimit `koanf:"RateLimit"`
 }
 
 type Server struct {
@@ -40,10 +40,10 @@ type Server struct {
 }
 
 type RateLimit struct {
-	GlobalRate int `koanf:"global_rate"`
+	GlobalRate  int `koanf:"global_rate"`
 	GlobalBurst int `koanf:"global_burst"`
-	IPRate int `koanf:"ip_rate"`
-	IPBurst int `koanf:"ip_burst"`
+	IPRate      int `koanf:"ip_rate"`
+	IPBurst     int `koanf:"ip_burst"`
 }
 
 type Auth struct {
@@ -76,7 +76,7 @@ type Logger struct {
 	FlushDelay   time.Duration `koanf:"flush_delay"`
 }
 
-func LoadConfiguration(ctx context.Context) (*AtomicConfig, error) {
+func LoadConfiguration(ctx *global.ApplicationContext) (*AtomicConfig, error) {
 	// Load YAML config
 	exePath, err := os.Executable()
 	if err != nil {
@@ -112,7 +112,8 @@ func LoadConfiguration(ctx context.Context) (*AtomicConfig, error) {
 	return atomicConfig, nil
 }
 
-func reloader(ctx context.Context, f *file.File, ac *AtomicConfig) {
+func reloader(ctx *global.ApplicationContext, f *file.File, ac *AtomicConfig) {
+	defer ctx.Done()
 	err := f.Watch(func(event interface{}, err error) {
 		if err != nil {
 			log.Println("watch error: ", err.Error())
@@ -139,10 +140,13 @@ func reloader(ctx context.Context, f *file.File, ac *AtomicConfig) {
 	}
 
 	log.Println("waiting for config changes...")
-	<-ctx.Done()
+
+	<-ctx.Context().Done()
+
 	if err := f.Unwatch(); err != nil {
 		log.Println("failed to unwatch: ", err.Error())
 	}
+	log.Println("config reloader shutting down.")
 }
 
 func unmarshalIntoStruct(k *koanf.Koanf) (*Config, error) {

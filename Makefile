@@ -10,8 +10,8 @@ build: ## Build the application
 	@echo "Building the application"
 	@echo "Current directory: $(CURDIR)"
 	@echo $(wildcard ./internal/config/*)
-	go build -ldflags="-s -w" -tags 'no_clickhouse no_libsql no_mssql no_mysql no_sqlite3 no_vertica no_ydb netgo' -o bin/task-manager cmd/blog-api/main.go
-	@echo "Make sure to change this command for LINUX/OSX"
+	@echo "Make sure to change copy/exe command for LINUX/OSX"
+	go build -ldflags="-s -w" -tags 'no_clickhouse no_libsql no_mssql no_mysql no_sqlite3 no_vertica no_ydb netgo' -o bin/task-manager.exe cmd/blog-api/main.go
 	copy .\internal\config\config.yaml .\bin
 	@echo "Build successful"
 

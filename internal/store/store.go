@@ -8,6 +8,11 @@ import (
 	"github.com/Roh-Bot/blog-api/internal/entity"
 )
 
+var (
+	stateUniqueViolation = "23505"
+	stateNoDataFound     = "P0002"
+)
+
 type Store struct {
 	Tasks ITaskStore
 	Users IUserStore
@@ -16,7 +21,7 @@ type Store struct {
 type ITaskStore interface {
 	Create(ctx context.Context, task *entity.Task) error
 	GetByID(ctx context.Context, id, userID string, isAdmin bool) (*entity.Task, error)
-	List(ctx context.Context, userID string, isAdmin bool, status string, limit int, scrollID string) ([]entity.Task, int, string, error)
+	List(ctx context.Context, userID string, isAdmin bool, status string, limit int, scrollID *string) ([]entity.Task, string, error)
 	Delete(ctx context.Context, id, userID string, isAdmin bool) error
 	UpdateStatus(ctx context.Context, id, status string) error
 	AutoCompleteIfPending(ctx context.Context, id string) error

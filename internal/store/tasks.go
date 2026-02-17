@@ -7,7 +7,7 @@ import (
 	"github.com/Roh-Bot/blog-api/internal/config"
 	"github.com/Roh-Bot/blog-api/internal/database"
 	"github.com/Roh-Bot/blog-api/internal/entity"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type TaskStore struct {
@@ -42,15 +42,14 @@ func (s *TaskStore) GetByID(ctx context.Context, id, userID string, isAdmin bool
 			&task.Status, &task.UserID,
 			&task.CreatedAt, &task.UpdatedAt)
 
-	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, nil
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		if pgErr.Code == stateNoDataFound {
+			return nil, ErrUserNotFound
+		}
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
-	return &task, nil
+	return &task, err
 }
 
 func (s *TaskStore) List(
@@ -59,27 +58,25 @@ func (s *TaskStore) List(
 	isAdmin bool,
 	status string,
 	limit int,
-	scrollId string,
-) ([]entity.Task, int, string, error) {
+	scrollId *string,
+) ([]entity.Task, string, error) {
 
 	query := `
-		SELECT id, title, description, status, user_id, created_at, updated_at, total_count, next_scroll_token
+		SELECT id, title, description, status, user_id, created_at, updated_at, next_cursor
 		FROM list_tasks_paginated($1, $2, $3, $4, $5)
 	`
 
 	rows, err := s.db.Query(ctx, query, userID, isAdmin, status, limit, scrollId)
 	if err != nil {
-		return nil, 0, "", err
+		return nil, "", err
 	}
 	defer rows.Close()
 
 	var tasks []entity.Task
-	var total int
 	var nextScrollToken string
 
 	for rows.Next() {
 		var task entity.Task
-		var totalCount int64
 		var nextToken *string
 
 		if err := rows.Scan(
@@ -90,14 +87,12 @@ func (s *TaskStore) List(
 			&task.UserID,
 			&task.CreatedAt,
 			&task.UpdatedAt,
-			&totalCount,
 			&nextToken,
 		); err != nil {
-			return nil, 0, "", err
+			return nil, "", err
 		}
 
 		tasks = append(tasks, task)
-		total = int(totalCount)
 
 		if nextToken != nil {
 			nextScrollToken = *nextToken
@@ -105,10 +100,10 @@ func (s *TaskStore) List(
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, 0, "", err
+		return nil, "", err
 	}
 
-	return tasks, total, nextScrollToken, nil
+	return tasks, nextScrollToken, nil
 }
 
 func (s *TaskStore) Delete(ctx context.Context, id, userID string, isAdmin bool) error {

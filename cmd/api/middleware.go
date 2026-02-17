@@ -68,10 +68,10 @@ func (s *Server) validateAuth(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		authHeader := ctx.Request().Header.Get("Authorization")
 		if authHeader == "" {
-			return s.unauthorized(ctx, nil, "missing authorization header")
+			return s.unauthorized(ctx, "missing authorization header")
 		}
 		if len(authHeader) < len("Bearer ") || authHeader[:7] != "Bearer " {
-			return s.unauthorized(ctx, nil, "invalid authorization format")
+			return s.unauthorized(ctx, "invalid authorization format")
 		}
 		token := authHeader[7:]
 		claims, err := s.App.Auth.ValidateToken(token)
@@ -79,9 +79,9 @@ func (s *Server) validateAuth(next echo.HandlerFunc) echo.HandlerFunc {
 		if err != nil {
 			s.Logger.Error(ctx.Request().Context(), err.Error())
 			if errors.Is(err, auth.ErrTokenExpired) {
-				return s.unauthorized(ctx, err, auth.ErrTokenExpired.Error())
+				return s.unauthorized(ctx, auth.ErrTokenExpired.Error())
 			}
-			return s.unauthorized(ctx, err, "invalid token")
+			return s.unauthorized(ctx, "invalid token")
 		}
 
 		ctx.Set("user_id", claims["user_id"])
@@ -113,9 +113,6 @@ func (s *Server) httpLogger(next echo.HandlerFunc) echo.HandlerFunc {
 			"url":        req.URL.String(),
 			"remote_ip":  ctx.RealIP(),
 			"latency_ms": latency.Milliseconds(),
-			"request": map[string]any{
-				"headers": req.Header,
-			},
 			"response": map[string]any{
 				"status": res.Status,
 			},

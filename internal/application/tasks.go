@@ -48,7 +48,7 @@ func (u *TaskUseCase) GetByID(ctx context.Context, id, userID string, isAdmin bo
 	return task, nil
 }
 
-func (u *TaskUseCase) List(ctx context.Context, userID string, isAdmin bool, status string, limit int, scrollID string) ([]entity.Task, int, string, error) {
+func (u *TaskUseCase) List(ctx context.Context, userID string, isAdmin bool, status string, limit int, scrollID *string) ([]entity.Task, string, error) {
 	return u.repo.List(ctx, userID, isAdmin, status, limit, scrollID)
 }
 

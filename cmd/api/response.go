@@ -50,16 +50,10 @@ func (s *Server) writeErrorResponse(ctx echo.Context, statusCode int, error stri
 	})
 }
 
-func (s *Server) internalServerError(ctx echo.Context, err error, errorMessage string) error {
-	if err != nil {
-		errorMessage = err.Error()
-	}
-	if errorMessage == "" {
-		errorMessage = errInternalServerError
-	}
-	s.Logger.Error(ctx.Request().Context(), errorMessage)
+func (s *Server) internalServerError(ctx echo.Context, err error) error {
+	s.Logger.Error(ctx.Request().Context(), err.Error())
 
-	return s.writeErrorResponse(ctx, http.StatusInternalServerError, errorMessage)
+	return s.writeErrorResponse(ctx, http.StatusInternalServerError, errInternalServerError)
 }
 
 func (s *Server) badRequest(ctx echo.Context, err error, errorMessage string) error {
@@ -72,14 +66,7 @@ func (s *Server) badRequest(ctx echo.Context, err error, errorMessage string) er
 	return s.writeErrorResponse(ctx, http.StatusBadRequest, errBadRequest)
 }
 
-func (s *Server) unauthorized(ctx echo.Context, err error, errorMessage string) error {
-	if err != nil {
-		errorMessage = err.Error()
-	}
-	if errorMessage == "" {
-		errorMessage = errUnauthorized
-	}
-
+func (s *Server) unauthorized(ctx echo.Context, errorMessage string) error {
 	return s.writeErrorResponse(ctx, http.StatusUnauthorized, errorMessage)
 }
 

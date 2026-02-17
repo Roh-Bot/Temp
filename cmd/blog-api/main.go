@@ -40,8 +40,8 @@ func main() {
 	global.ParseFlags()
 	appCtx := global.NewApplicationContext()
 
-	appCtx.Add(1)
-	cfg, err := config.LoadConfiguration(appCtx.Context())
+	appCtx.Add(4)
+	cfg, err := config.LoadConfiguration(appCtx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -72,12 +72,10 @@ func main() {
 	validator2 := validator.NewValidator()
 
 	taskWorker := worker.NewTaskWorker(newStore.Tasks, newLogger, cfg.Get().AutoCompleteMin)
-	appCtx.Add(1)
-	taskWorker.Start(appCtx.Context())
+	taskWorker.Start(appCtx)
 
 	server := api.NewServer(cfg, services, validator2, newLogger, appCtx)
 
-	appCtx.Add(1)
 	go server.Run()
 
 	appCtx.HandleShutdownSignal()

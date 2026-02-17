@@ -1,6 +1,9 @@
 package api
 
 import (
+	"errors"
+
+	"github.com/Roh-Bot/blog-api/internal/store"
 	"github.com/labstack/echo/v4"
 )
 
@@ -38,12 +41,15 @@ func (s *Server) login(ctx echo.Context) error {
 	if err := s.Validator.Struct(req); err != nil {
 		return s.badRequest(ctx, err, validationToErrorMessage(err))
 	}
-	
+
 	token, err := s.App.Auth.Login(ctx.Request().Context(), req.Username, req.Password)
 	if err != nil {
-		return s.unauthorized(ctx, err, err.Error())
+		if errors.Is(err, store.ErrUserNotFound) {
+			return s.unauthorized(ctx, err.Error())
+		}
+		return s.internalServerError(ctx, err)
 	}
-	
+
 	return s.writeResponse(ctx, AuthResponse{Token: token})
 }
 
@@ -64,10 +70,13 @@ func (s *Server) register(ctx echo.Context) error {
 	if err := s.Validator.Struct(req); err != nil {
 		return s.badRequest(ctx, err, validationToErrorMessage(err))
 	}
-	
+
 	if err := s.App.Auth.Register(ctx.Request().Context(), req.Username, req.Email, req.Password, req.Role); err != nil {
-		return s.internalServerError(ctx, err, err.Error())
+		if errors.Is(err, store.ErrEmailAlreadyExists) || errors.Is(err, store.ErrUsernameAlreadyExists) {
+			return s.conflict(ctx, err.Error())
+		}
+		return s.internalServerError(ctx, err)
 	}
-	
+
 	return s.created(ctx, nil)
 }

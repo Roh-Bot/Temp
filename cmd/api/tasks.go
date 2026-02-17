@@ -1,9 +1,10 @@
 package api
 
 import (
-	"strconv"
+	"errors"
 
 	"github.com/Roh-Bot/blog-api/internal/application"
+	"github.com/Roh-Bot/blog-api/internal/store"
 	"github.com/labstack/echo/v4"
 )
 
@@ -23,10 +24,15 @@ type TaskResponse struct {
 }
 
 type TaskListResponse struct {
-	Tasks      []TaskResponse `json:"tasks"`
-	Total      int            `json:"total"`
-	Limit      int            `json:"limit"`
-	NextScroll string         `json:"next_scroll,omitempty"`
+	Tasks    []TaskResponse `json:"tasks"`
+	Limit    int            `json:"limit"`
+	ScrollId string         `json:"scroll_id,omitempty"`
+}
+
+type TasksListQuery struct {
+	Limit    int     `query:"limit" validate:"omitempty,min=1,max=100"`
+	Status   string  `query:"status" validate:"omitempty,oneof=pending in_progress completed"`
+	ScrollId *string `query:"scroll_id" validate:"omitempty,uuid"`
 }
 
 // @Summary Create a task
@@ -58,7 +64,7 @@ func (s *Server) createTask(ctx echo.Context) error {
 	}
 
 	if err := s.App.Task.Create(ctx.Request().Context(), dto); err != nil {
-		return s.internalServerError(ctx, err, err.Error())
+		return s.internalServerError(ctx, err)
 	}
 
 	return s.created(ctx, nil)
@@ -79,16 +85,30 @@ func (s *Server) listTasks(ctx echo.Context) error {
 	userID := ctx.Get("user_id").(string)
 	isAdmin := ctx.Get("is_admin").(bool)
 
-	limit, _ := strconv.Atoi(ctx.QueryParam("limit"))
-	if limit < 1 || limit > 100 {
-		limit = 10
-	}
-	scrollID := ctx.QueryParam("scroll_id")
-	status := ctx.QueryParam("status")
+	var req TasksListQuery
 
-	tasks, total, nextScroll, err := s.App.Task.List(ctx.Request().Context(), userID, isAdmin, status, limit, scrollID)
+	if err := ctx.Bind(&req); err != nil {
+		return s.badRequest(ctx, err, err.Error())
+	}
+
+	if err := s.Validator.Struct(req); err != nil {
+		return s.badRequest(ctx, err, validationToErrorMessage(err))
+	}
+
+	if req.Limit == 0 {
+		req.Limit = 10
+	}
+
+	tasks, scrollId, err := s.App.Task.List(
+		ctx.Request().Context(),
+		userID,
+		isAdmin,
+		req.Status,
+		req.Limit,
+		req.ScrollId,
+	)
 	if err != nil {
-		return s.internalServerError(ctx, err, err.Error())
+		return s.internalServerError(ctx, err)
 	}
 
 	var taskResponses []TaskResponse
@@ -105,10 +125,9 @@ func (s *Server) listTasks(ctx echo.Context) error {
 	}
 
 	response := TaskListResponse{
-		Tasks:      taskResponses,
-		Total:      total,
-		Limit:      limit,
-		NextScroll: nextScroll,
+		Tasks:    taskResponses,
+		Limit:    req.Limit,
+		ScrollId: scrollId,
 	}
 
 	return s.writeResponse(ctx, response)
@@ -131,7 +150,10 @@ func (s *Server) getTask(ctx echo.Context) error {
 
 	task, err := s.App.Task.GetByID(ctx.Request().Context(), id, userID, isAdmin)
 	if err != nil {
-		return s.notFound(ctx, err.Error())
+		if errors.Is(err, store.ErrTaskNotFound) {
+			return s.notFound(ctx, err.Error())
+		}
+		return s.internalServerError(ctx, err)
 	}
 
 	response := TaskResponse{
@@ -162,7 +184,7 @@ func (s *Server) deleteTask(ctx echo.Context) error {
 	id := ctx.Param("id")
 
 	if err := s.App.Task.Delete(ctx.Request().Context(), id, userID, isAdmin); err != nil {
-		return s.internalServerError(ctx, err, err.Error())
+		return s.internalServerError(ctx, err)
 	}
 
 	return ctx.NoContent(204)

@@ -1,10 +1,11 @@
 package worker
 
 import (
-	"context"
+	"log"
 	"time"
 
 	"github.com/Roh-Bot/blog-api/internal/store"
+	"github.com/Roh-Bot/blog-api/pkg/global"
 	"github.com/Roh-Bot/blog-api/pkg/logger"
 )
 
@@ -24,38 +25,43 @@ func NewTaskWorker(store store.ITaskStore, logger logger.Logger, autoCompleteMin
 	}
 }
 
-func (w *TaskWorker) Start(ctx context.Context) {
+func (w *TaskWorker) Start(ctx *global.ApplicationContext) {
 	go w.processTaskQueue(ctx)
 	go w.scanPendingTasks(ctx)
 }
 
-func (w *TaskWorker) processTaskQueue(ctx context.Context) {
+func (w *TaskWorker) processTaskQueue(ctx *global.ApplicationContext) {
+	defer ctx.Done()
 	for {
 		select {
-		case <-ctx.Done():
+		case <-ctx.Context().Done():
+			log.Println("task processor scanner shutting down")
 			return
 		case taskID := <-w.taskChan:
-			if err := w.store.AutoCompleteIfPending(ctx, taskID); err != nil {
-				w.logger.Error(ctx, "Failed to auto-complete task "+taskID+": "+err.Error())
+			if err := w.store.AutoCompleteIfPending(ctx.Context(), taskID); err != nil {
+				w.logger.Error(ctx.Context(), "Failed to auto-complete task "+taskID+": "+err.Error())
 			} else {
-				w.logger.Info(ctx, "Auto-completed task: "+taskID)
+				w.logger.Info(ctx.Context(), "Auto-completed task: "+taskID)
 			}
 		}
 	}
 }
 
-func (w *TaskWorker) scanPendingTasks(ctx context.Context) {
+func (w *TaskWorker) scanPendingTasks(ctx *global.ApplicationContext) {
+	defer ctx.Done()
+
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 
 	for {
 		select {
-		case <-ctx.Done():
+		case <-ctx.Context().Done():
+			log.Println("pending task scanner shutting down")
 			return
 		case <-ticker.C:
-			tasks, err := w.store.GetPendingTasks(ctx, w.autoCompleteMin)
+			tasks, err := w.store.GetPendingTasks(ctx.Context(), w.autoCompleteMin)
 			if err != nil {
-				w.logger.Error(ctx, "Failed to fetch pending tasks: "+err.Error())
+				w.logger.Error(ctx.Context(), "Failed to fetch pending tasks: "+err.Error())
 				continue
 			}
 
@@ -63,7 +69,7 @@ func (w *TaskWorker) scanPendingTasks(ctx context.Context) {
 				select {
 				case w.taskChan <- task.ID:
 				default:
-					w.logger.Error(ctx, "Task queue full, skipping task: "+task.ID)
+					w.logger.Error(ctx.Context(), "Task queue full, skipping task: "+task.ID)
 				}
 			}
 		}
