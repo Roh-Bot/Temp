@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Roh-Bot/blog-api/internal/auth"
+	"github.com/Roh-Bot/task-manager/internal/auth"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/time/rate"

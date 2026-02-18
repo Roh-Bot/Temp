@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/Roh-Bot/blog-api/internal/config"
+	"github.com/Roh-Bot/task-manager/internal/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

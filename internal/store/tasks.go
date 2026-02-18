@@ -4,10 +4,14 @@ import (
 	"context"
 	"errors"
 
-	"github.com/Roh-Bot/blog-api/internal/config"
-	"github.com/Roh-Bot/blog-api/internal/database"
-	"github.com/Roh-Bot/blog-api/internal/entity"
+	"github.com/Roh-Bot/task-manager/internal/config"
+	"github.com/Roh-Bot/task-manager/internal/database"
+	"github.com/Roh-Bot/task-manager/internal/entity"
 	"github.com/jackc/pgx/v5/pgconn"
+)
+
+var (
+	ErrTaskNotFound = errors.New("task not found")
 )
 
 type TaskStore struct {
@@ -45,7 +49,7 @@ func (s *TaskStore) GetByID(ctx context.Context, id, userID string, isAdmin bool
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		if pgErr.Code == stateNoDataFound {
-			return nil, ErrUserNotFound
+			return nil, ErrTaskNotFound
 		}
 	}
 

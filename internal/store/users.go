@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/Roh-Bot/blog-api/internal/config"
-	"github.com/Roh-Bot/blog-api/internal/database"
-	"github.com/Roh-Bot/blog-api/internal/entity"
+	"github.com/Roh-Bot/task-manager/internal/config"
+	"github.com/Roh-Bot/task-manager/internal/database"
+	"github.com/Roh-Bot/task-manager/internal/entity"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 

@@ -3,7 +3,6 @@ package api
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -11,10 +10,10 @@ import (
 
 	"time"
 
-	"github.com/Roh-Bot/blog-api/internal/application"
-	"github.com/Roh-Bot/blog-api/internal/config"
-	"github.com/Roh-Bot/blog-api/internal/entity"
-	"github.com/Roh-Bot/blog-api/pkg/logger"
+	"github.com/Roh-Bot/task-manager/internal/application"
+	"github.com/Roh-Bot/task-manager/internal/config"
+	"github.com/Roh-Bot/task-manager/internal/entity"
+	"github.com/Roh-Bot/task-manager/pkg/logger"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -38,36 +37,14 @@ func (m *MockTaskUseCase) GetByID(ctx context.Context, id, userID string, isAdmi
 	return args.Get(0).(*entity.Task), args.Error(1)
 }
 
-func (m *MockTaskUseCase) List(ctx context.Context, userID string, isAdmin bool, status string, limit int, scrollID string) ([]entity.Task, int, string, error) {
+func (m *MockTaskUseCase) List(ctx context.Context, userID string, isAdmin bool, status string, limit int, scrollID *string) ([]entity.Task, string, error) {
 	args := m.Called(ctx, userID, isAdmin, limit, scrollID, status)
-	return args.Get(0).([]entity.Task), args.Int(1), args.String(2), args.Error(3)
+	return args.Get(0).([]entity.Task), args.String(2), args.Error(3)
 }
 
 func (m *MockTaskUseCase) Delete(ctx context.Context, id, userID string, isAdmin bool) error {
 	args := m.Called(ctx, id, userID, isAdmin)
 	return args.Error(0)
-}
-
-type MockAuthUseCase struct {
-	mock.Mock
-}
-
-func (m *MockAuthUseCase) Login(ctx context.Context, username, password string) (string, error) {
-	args := m.Called(ctx, username, password)
-	return args.String(0), args.Error(1)
-}
-
-func (m *MockAuthUseCase) Register(ctx context.Context, username, email, password, role string) error {
-	args := m.Called(ctx, username, email, password, role)
-	return args.Error(0)
-}
-
-func (m *MockAuthUseCase) ValidateToken(token string) (map[string]interface{}, error) {
-	args := m.Called(token)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(map[string]interface{}), args.Error(1)
 }
 
 func setupTestServer() (*Server, *MockTaskUseCase, *MockAuthUseCase) {
@@ -207,63 +184,5 @@ func TestDeleteTask(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, http.StatusNoContent, rec.Code)
 		mockTask.AssertExpectations(t)
-	})
-}
-
-func TestLogin(t *testing.T) {
-	server, _, mockAuth := setupTestServer()
-
-	t.Run("success", func(t *testing.T) {
-		mockAuth.On("Login", mock.Anything, "user1", "password123").Return("token123", nil)
-
-		body := `{"username":"user1","password":"password123"}`
-		req := httptest.NewRequest(http.MethodPost, "/auth/login", bytes.NewBufferString(body))
-		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-		rec := httptest.NewRecorder()
-		c := server.Router.NewContext(req, rec)
-
-		err := server.login(c)
-
-		assert.NoError(t, err)
-
-		var response map[string]interface{}
-		json.Unmarshal(rec.Body.Bytes(), &response)
-		assert.Equal(t, "token123", response["token"])
-		mockAuth.AssertExpectations(t)
-	})
-
-	t.Run("invalid credentials", func(t *testing.T) {
-		mockAuth.On("Login", mock.Anything, "user1", "wrong").Return("", errors.New("invalid credentials"))
-
-		body := `{"username":"user1","password":"wrong"}`
-		req := httptest.NewRequest(http.MethodPost, "/auth/login", bytes.NewBufferString(body))
-		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-		rec := httptest.NewRecorder()
-		c := server.Router.NewContext(req, rec)
-
-		server.login(c)
-
-		assert.Equal(t, http.StatusUnauthorized, rec.Code)
-		mockAuth.AssertExpectations(t)
-	})
-}
-
-func TestRegister(t *testing.T) {
-	server, _, mockAuth := setupTestServer()
-
-	t.Run("success", func(t *testing.T) {
-		mockAuth.On("Register", mock.Anything, "newuser", "new@example.com", "password123", "user").Return(nil)
-
-		body := `{"username":"newuser","email":"new@example.com","password":"password123"}`
-		req := httptest.NewRequest(http.MethodPost, "/auth/register", bytes.NewBufferString(body))
-		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-		rec := httptest.NewRecorder()
-		c := server.Router.NewContext(req, rec)
-
-		err := server.register(c)
-
-		assert.NoError(t, err)
-		assert.Equal(t, http.StatusCreated, rec.Code)
-		mockAuth.AssertExpectations(t)
 	})
 }

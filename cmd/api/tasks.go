@@ -3,8 +3,8 @@ package api
 import (
 	"errors"
 
-	"github.com/Roh-Bot/blog-api/internal/application"
-	"github.com/Roh-Bot/blog-api/internal/store"
+	"github.com/Roh-Bot/task-manager/internal/application"
+	"github.com/Roh-Bot/task-manager/internal/store"
 	"github.com/labstack/echo/v4"
 )
 

@@ -4,9 +4,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Roh-Bot/blog-api/internal/store"
-	"github.com/Roh-Bot/blog-api/pkg/global"
-	"github.com/Roh-Bot/blog-api/pkg/logger"
+	"github.com/Roh-Bot/task-manager/internal/store"
+	"github.com/Roh-Bot/task-manager/pkg/global"
+	"github.com/Roh-Bot/task-manager/pkg/logger"
 )
 
 type TaskWorker struct {

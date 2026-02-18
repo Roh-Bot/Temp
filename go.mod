@@ -1,4 +1,4 @@
-module github.com/Roh-Bot/blog-api
+module github.com/Roh-Bot/task-manager
 
 go 1.26.0
 

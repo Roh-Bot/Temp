@@ -3,11 +3,11 @@ package application
 import (
 	"context"
 
-	"github.com/Roh-Bot/blog-api/internal/auth"
-	"github.com/Roh-Bot/blog-api/internal/config"
-	"github.com/Roh-Bot/blog-api/internal/entity"
-	store2 "github.com/Roh-Bot/blog-api/internal/store"
-	"github.com/Roh-Bot/blog-api/pkg/logger"
+	"github.com/Roh-Bot/task-manager/internal/auth"
+	"github.com/Roh-Bot/task-manager/internal/config"
+	"github.com/Roh-Bot/task-manager/internal/entity"
+	store2 "github.com/Roh-Bot/task-manager/internal/store"
+	"github.com/Roh-Bot/task-manager/pkg/logger"
 )
 
 type App struct {

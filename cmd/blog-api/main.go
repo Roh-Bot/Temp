@@ -3,17 +3,17 @@ package main
 import (
 	"log"
 
-	"github.com/Roh-Bot/blog-api/cmd/api"
-	_ "github.com/Roh-Bot/blog-api/docs"
-	servicesv1 "github.com/Roh-Bot/blog-api/internal/application"
-	"github.com/Roh-Bot/blog-api/internal/auth"
-	"github.com/Roh-Bot/blog-api/internal/config"
-	"github.com/Roh-Bot/blog-api/internal/database"
-	"github.com/Roh-Bot/blog-api/internal/store"
-	"github.com/Roh-Bot/blog-api/internal/validator"
-	"github.com/Roh-Bot/blog-api/internal/worker"
-	"github.com/Roh-Bot/blog-api/pkg/global"
-	"github.com/Roh-Bot/blog-api/pkg/logger"
+	"github.com/Roh-Bot/task-manager/cmd/api"
+	_ "github.com/Roh-Bot/task-manager/docs"
+	servicesv1 "github.com/Roh-Bot/task-manager/internal/application"
+	"github.com/Roh-Bot/task-manager/internal/auth"
+	"github.com/Roh-Bot/task-manager/internal/config"
+	"github.com/Roh-Bot/task-manager/internal/database"
+	"github.com/Roh-Bot/task-manager/internal/store"
+	"github.com/Roh-Bot/task-manager/internal/validator"
+	"github.com/Roh-Bot/task-manager/internal/worker"
+	"github.com/Roh-Bot/task-manager/pkg/global"
+	"github.com/Roh-Bot/task-manager/pkg/logger"
 )
 
 // @title Task Management API

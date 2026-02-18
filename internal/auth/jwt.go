@@ -2,8 +2,8 @@ package auth
 
 import (
 	"fmt"
-	"github.com/Roh-Bot/blog-api/internal/config"
-	store2 "github.com/Roh-Bot/blog-api/internal/store"
+	"github.com/Roh-Bot/task-manager/internal/config"
+	store2 "github.com/Roh-Bot/task-manager/internal/store"
 	"github.com/golang-jwt/jwt/v5"
 )
 

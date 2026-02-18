@@ -3,7 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
-	"github.com/Roh-Bot/blog-api/internal/config"
+	"github.com/Roh-Bot/task-manager/internal/config"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"time"
 )

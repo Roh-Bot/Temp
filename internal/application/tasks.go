@@ -5,10 +5,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/Roh-Bot/blog-api/internal/config"
-	"github.com/Roh-Bot/blog-api/internal/entity"
-	"github.com/Roh-Bot/blog-api/internal/store"
-	"github.com/Roh-Bot/blog-api/pkg/logger"
+	"github.com/Roh-Bot/task-manager/internal/config"
+	"github.com/Roh-Bot/task-manager/internal/entity"
+	"github.com/Roh-Bot/task-manager/internal/store"
+	"github.com/Roh-Bot/task-manager/pkg/logger"
 	"github.com/google/uuid"
 )
 
