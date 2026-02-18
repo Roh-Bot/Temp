@@ -30,7 +30,7 @@ A scalable RESTful Task Management Service built with Go, demonstrating clean ar
 ```
 cmd/
   api/          - HTTP handlers and routes
-  blog-api/     - Main application entry point
+  task-manager/     - Main application entry point
 internal/
   application/  - Business logic layer
   auth/         - JWT and encryption
@@ -96,7 +96,7 @@ psql -h localhost -U postgres -d taskmanager -f migrations/001_init.sql
 # Update config.yaml database host to localhost
 
 # Run the application
-go run cmd/blog-api/main.go
+go run cmd/task-manager/main.go
 ```
 
 ## Configuration
@@ -230,7 +230,7 @@ http://localhost:8000/swagger/index.html
 
 To regenerate Swagger docs:
 ```bash
-swag init -g cmd/blog-api/main.go
+swag init -g cmd/task-manager/main.go
 ```
 
 ## Database Schema

@@ -20,16 +20,16 @@ ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 RUN go build \
     -ldflags="-s -w" \
     -tags="netgo no_clickhouse no_libsql no_mssql no_mysql no_sqlite3 no_vertica no_ydb" \
-    -o /app/bin/blog-api ./cmd/blog-api
+    -o /app/bin/task-manager ./cmd/task-manager
 
 # Can use scratch or alpine as well
 FROM gcr.io/distroless/static-debian12 AS production
 
-COPY --from=builder /app/bin/blog-api /app/bin/blog-api
+COPY --from=builder /app/bin/task-manager /app/bin/task-manager
 COPY --from=builder /app/internal/config/config.yaml /app/bin/config.yaml
 
 USER 65532:65532
 
 EXPOSE 8000
 
-ENTRYPOINT ["/app/bin/blog-api"]
+ENTRYPOINT ["/app/bin/task-manager"]

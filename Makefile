@@ -11,12 +11,12 @@ build: ## Build the application
 	@echo "Current directory: $(CURDIR)"
 	@echo $(wildcard ./internal/config/*)
 	@echo "Make sure to change copy/exe command for LINUX/OSX"
-	go build -ldflags="-s -w" -tags 'no_clickhouse no_libsql no_mssql no_mysql no_sqlite3 no_vertica no_ydb netgo' -o bin/task-manager.exe cmd/blog-api/main.go
+	go build -ldflags="-s -w" -tags 'no_clickhouse no_libsql no_mssql no_mysql no_sqlite3 no_vertica no_ydb netgo' -o bin/task-manager.exe cmd/task-manager/main.go
 	copy .\internal\config\config.yaml .\bin
 	@echo "Build successful"
 
 run: ## Run the application
-	go run cmd/blog-api/main.go
+	go run cmd/task-manager/main.go
 
 test: ## Run tests
 	go test -v ./...
@@ -45,7 +45,7 @@ docker-logs: ## View docker logs
 	docker-compose logs -f api-go
 
 swagger: ## Generate swagger documentation
-	swag init -g cmd/blog-api/main.go
+	swag init -g cmd/task-manager/main.go
 
 deps: ## Download dependencies
 	go mod download

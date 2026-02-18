@@ -24,7 +24,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/authentication/login": {
+        "/auth/login": {
             "post": {
                 "description": "Authenticate user and get JWT token",
                 "consumes": [
@@ -44,83 +44,37 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.AuthLoginUserRequest"
+                            "$ref": "#/definitions/api.LoginRequest"
                         }
                     }
                 ],
-                "responses": {
-                    "200": {
-                        "description": "Authentication successful",
-                        "schema": {
-                            "$ref": "#/definitions/api.AuthLoginWrappedResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request format",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    },
-                    "401": {
-                        "description": "Invalid credentials",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/blog-post": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Get a single blog post by ID or all posts if ID is 0",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Blog"
-                ],
-                "summary": "Get blog post(s)",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.GetPostsWrapperResponse"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/api.AuthResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
-                        "description": "Invalid request format",
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/api.Response"
                         }
                     },
                     "401": {
-                        "description": "Invalid credentials",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    },
-                    "404": {
-                        "description": "Post Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/api.Response"
                         }
@@ -128,14 +82,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/blog-post/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Get a single blog post by ID or all posts if ID is 0",
+        "/auth/register": {
+            "post": {
+                "description": "Register a new user",
                 "consumes": [
                     "application/json"
                 ],
@@ -143,44 +92,93 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Blog"
+                    "Authentication"
                 ],
-                "summary": "Get blog post(s)",
+                "summary": "User registration",
                 "parameters": [
                     {
+                        "description": "User details",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/tasks": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get list of tasks with pagination and filtering",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "List tasks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Scroll ID for pagination",
+                        "name": "scroll_id",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
-                        "description": "Post ID",
-                        "name": "id",
-                        "in": "path"
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by status (pending, in_progress, completed)",
+                        "name": "status",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.GetPostsWrapperResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request format",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/api.TaskListResponse"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "401": {
-                        "description": "Invalid credentials",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    },
-                    "404": {
-                        "description": "Post Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/api.Response"
                         }
@@ -193,7 +191,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Adds a new blog post to the system",
+                "description": "Create a new task",
                 "consumes": [
                     "application/json"
                 ],
@@ -201,47 +199,93 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Blog"
+                    "Tasks"
                 ],
-                "summary": "Add a new blog post",
+                "summary": "Create a task",
                 "parameters": [
                     {
-                        "description": "Post details",
-                        "name": "data",
+                        "description": "Task details",
+                        "name": "task",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.AddPostRequest"
+                            "$ref": "#/definitions/api.CreateTaskRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Post deleted successfully",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/api.Response"
                         }
                     },
                     "400": {
-                        "description": "Invalid request format",
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/api.Response"
                         }
                     },
                     "401": {
-                        "description": "Invalid credentials",
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/tasks/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get a specific task by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get task by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Task ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/api.TaskResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/api.Response"
                         }
                     },
                     "404": {
-                        "description": "Post Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/api.Response"
                         }
@@ -254,115 +298,32 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Deletes blog post by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
+                "description": "Delete a task by ID",
                 "tags": [
-                    "Blog"
+                    "Tasks"
                 ],
-                "summary": "Delete a blog post",
+                "summary": "Delete task",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Post ID",
+                        "type": "string",
+                        "description": "Task ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "Post deleted successfully",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request format",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
+                    "204": {
+                        "description": "No Content"
                     },
                     "401": {
-                        "description": "Invalid credentials",
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/api.Response"
                         }
                     },
                     "404": {
-                        "description": "Post Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "security": [
-                    {
-                        "ApiKeyAuth": []
-                    }
-                ],
-                "description": "Updates blog post by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Blog"
-                ],
-                "summary": "Update an existing blog post",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Post ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Updated post data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.UpdatePostRequestBody"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Post updated successfully",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request format",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    },
-                    "401": {
-                        "description": "Invalid credentials",
-                        "schema": {
-                            "$ref": "#/definitions/api.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/api.Response"
                         }
@@ -372,150 +333,69 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "api.AddPostRequest": {
+        "api.AuthResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.CreateTaskRequest": {
             "type": "object",
             "required": [
-                "AuthorName",
-                "Content",
-                "Description",
-                "IsPublished",
-                "Slug",
-                "Title"
+                "description",
+                "title"
             ],
             "properties": {
-                "AuthorName": {
-                    "description": "Author's name\nrequired: true\nexample: Rohit",
+                "description": {
                     "type": "string"
                 },
-                "Content": {
-                    "description": "Main content of the post\nrequired: true\nexample: Hello World!",
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.LoginRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
                     "type": "string"
                 },
-                "Description": {
-                    "description": "Post description\nrequired: true\nexample: A sample post",
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.RegisterRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "role",
+                "username"
+            ],
+            "properties": {
+                "email": {
                     "type": "string"
                 },
-                "IsPublished": {
-                    "description": "Post visibility status\nrequired: true\nexample: true",
-                    "type": "boolean"
-                },
-                "Slug": {
-                    "description": "Unique slug for the post\nrequired: true\nexample: my-first-post",
-                    "type": "string"
-                },
-                "Tags": {
-                    "description": "Tags associated with the post\nexample: [\"go\", \"fiber\"]",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "Title": {
-                    "description": "Post title\nrequired: true\nexample: MyFirstPost",
+                "password": {
                     "type": "string",
-                    "maxLength": 100
-                }
-            }
-        },
-        "api.AuthLoginUserRequest": {
-            "type": "object",
-            "required": [
-                "Username"
-            ],
-            "properties": {
-                "Username": {
-                    "description": "Username for authentication\nrequired: true\nexample: admin",
-                    "type": "string"
-                }
-            }
-        },
-        "api.AuthLoginUserResponse": {
-            "type": "object",
-            "properties": {
-                "AccessToken": {
-                    "description": "JWT access token\nexample: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-                    "type": "string"
-                }
-            }
-        },
-        "api.AuthLoginWrappedResponse": {
-            "type": "object",
-            "properties": {
-                "Data": {
-                    "description": "example: {\"AccessToken\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"}",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/api.AuthLoginUserResponse"
-                        }
+                    "minLength": 6
+                },
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "user",
+                        "admin"
                     ]
                 },
-                "Error": {
-                    "description": "example: \"\"",
+                "username": {
                     "type": "string"
-                },
-                "Status": {
-                    "description": "example: 1",
-                    "type": "integer"
-                }
-            }
-        },
-        "api.GetPostsResponse": {
-            "type": "object",
-            "properties": {
-                "AuthorName": {
-                    "description": "Author's name\nexample: Rohit",
-                    "type": "string"
-                },
-                "Content": {
-                    "description": "Post content\nexample: This is the main content of the post.",
-                    "type": "string"
-                },
-                "Description": {
-                    "description": "Post description\nexample: This is a short description of the blog post.",
-                    "type": "string"
-                },
-                "Id": {
-                    "description": "Post ID\nexample: 1",
-                    "type": "integer"
-                },
-                "PublishedAt": {
-                    "description": "Published at datetime\nexample: 2006-01-02 15:05:05",
-                    "type": "string"
-                },
-                "Slug": {
-                    "description": "Post slug\nexample: my-first-post",
-                    "type": "string"
-                },
-                "Tags": {
-                    "description": "Tags associated with the post\nexample: [\"go\", \"fiber\"]",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "Title": {
-                    "description": "Post title\nexample: My First Post",
-                    "type": "string"
-                }
-            }
-        },
-        "api.GetPostsWrapperResponse": {
-            "type": "object",
-            "properties": {
-                "Data": {
-                    "description": "example: {\"AccessToken\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"}",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.GetPostsResponse"
-                    }
-                },
-                "Error": {
-                    "description": "example: \"\"",
-                    "type": "string"
-                },
-                "Status": {
-                    "description": "example: 1",
-                    "type": "integer"
                 }
             }
         },
@@ -535,40 +415,46 @@ const docTemplate = `{
                 }
             }
         },
-        "api.UpdatePostRequestBody": {
+        "api.TaskListResponse": {
             "type": "object",
             "properties": {
-                "AuthorName": {
-                    "description": "Optional: updated author name\nexample: RohitDev",
+                "limit": {
+                    "type": "integer"
+                },
+                "scroll_id": {
                     "type": "string"
                 },
-                "Content": {
-                    "description": "Optional: updated content\nexample: Updated blog content here...",
-                    "type": "string"
-                },
-                "Description": {
-                    "description": "Optional: updated description\nexample: Updated description",
-                    "type": "string"
-                },
-                "IsPublished": {
-                    "description": "Optional: updated visibility\nexample: false",
-                    "type": "boolean"
-                },
-                "Slug": {
-                    "description": "Optional: updated slug\nexample: updated-post-title",
-                    "type": "string"
-                },
-                "Tags": {
-                    "description": "Optional: updated tags\nexample: [\"go\", \"api\"]",
+                "tasks": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/api.TaskResponse"
                     }
+                }
+            }
+        },
+        "api.TaskResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
                 },
-                "Title": {
-                    "description": "Optional: updated title\nexample: Updated Post Title",
-                    "type": "string",
-                    "maxLength": 100
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
                 }
             }
         }
@@ -589,8 +475,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "/api",
 	Schemes:          []string{"https", "http"},
-	Title:            "Blog API",
-	Description:      "Blog API with JWT authentication",
+	Title:            "Task Management API",
+	Description:      "Task Management REST API with JWT authentication",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

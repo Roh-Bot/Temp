@@ -1,149 +1,49 @@
 basePath: /api
 definitions:
-  api.AddPostRequest:
+  api.AuthResponse:
     properties:
-      AuthorName:
-        description: |-
-          Author's name
-          required: true
-          example: Rohit
+      token:
         type: string
-      Content:
-        description: |-
-          Main content of the post
-          required: true
-          example: Hello World!
+    type: object
+  api.CreateTaskRequest:
+    properties:
+      description:
         type: string
-      Description:
-        description: |-
-          Post description
-          required: true
-          example: A sample post
-        type: string
-      IsPublished:
-        description: |-
-          Post visibility status
-          required: true
-          example: true
-        type: boolean
-      Slug:
-        description: |-
-          Unique slug for the post
-          required: true
-          example: my-first-post
-        type: string
-      Tags:
-        description: |-
-          Tags associated with the post
-          example: ["go", "fiber"]
-        items:
-          type: string
-        type: array
-      Title:
-        description: |-
-          Post title
-          required: true
-          example: MyFirstPost
-        maxLength: 100
+      title:
         type: string
     required:
-    - AuthorName
-    - Content
-    - Description
-    - IsPublished
-    - Slug
-    - Title
+    - description
+    - title
     type: object
-  api.AuthLoginUserRequest:
+  api.LoginRequest:
     properties:
-      Username:
-        description: |-
-          Username for authentication
-          required: true
-          example: admin
+      password:
+        type: string
+      username:
         type: string
     required:
-    - Username
+    - password
+    - username
     type: object
-  api.AuthLoginUserResponse:
+  api.RegisterRequest:
     properties:
-      AccessToken:
-        description: |-
-          JWT access token
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      email:
         type: string
-    type: object
-  api.AuthLoginWrappedResponse:
-    properties:
-      Data:
-        allOf:
-        - $ref: '#/definitions/api.AuthLoginUserResponse'
-        description: 'example: {"AccessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."}'
-      Error:
-        description: 'example: ""'
+      password:
+        minLength: 6
         type: string
-      Status:
-        description: 'example: 1'
-        type: integer
-    type: object
-  api.GetPostsResponse:
-    properties:
-      AuthorName:
-        description: |-
-          Author's name
-          example: Rohit
+      role:
+        enum:
+        - user
+        - admin
         type: string
-      Content:
-        description: |-
-          Post content
-          example: This is the main content of the post.
+      username:
         type: string
-      Description:
-        description: |-
-          Post description
-          example: This is a short description of the blog post.
-        type: string
-      Id:
-        description: |-
-          Post ID
-          example: 1
-        type: integer
-      PublishedAt:
-        description: |-
-          Published at datetime
-          example: 2006-01-02 15:05:05
-        type: string
-      Slug:
-        description: |-
-          Post slug
-          example: my-first-post
-        type: string
-      Tags:
-        description: |-
-          Tags associated with the post
-          example: ["go", "fiber"]
-        items:
-          type: string
-        type: array
-      Title:
-        description: |-
-          Post title
-          example: My First Post
-        type: string
-    type: object
-  api.GetPostsWrapperResponse:
-    properties:
-      Data:
-        description: 'example: {"AccessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."}'
-        items:
-          $ref: '#/definitions/api.GetPostsResponse'
-        type: array
-      Error:
-        description: 'example: ""'
-        type: string
-      Status:
-        description: 'example: 1'
-        type: integer
+    required:
+    - email
+    - password
+    - role
+    - username
     type: object
   api.Response:
     properties:
@@ -162,45 +62,32 @@ definitions:
           example: 1 / -1
         type: integer
     type: object
-  api.UpdatePostRequestBody:
+  api.TaskListResponse:
     properties:
-      AuthorName:
-        description: |-
-          Optional: updated author name
-          example: RohitDev
+      limit:
+        type: integer
+      scroll_id:
         type: string
-      Content:
-        description: |-
-          Optional: updated content
-          example: Updated blog content here...
-        type: string
-      Description:
-        description: |-
-          Optional: updated description
-          example: Updated description
-        type: string
-      IsPublished:
-        description: |-
-          Optional: updated visibility
-          example: false
-        type: boolean
-      Slug:
-        description: |-
-          Optional: updated slug
-          example: updated-post-title
-        type: string
-      Tags:
-        description: |-
-          Optional: updated tags
-          example: ["go", "api"]
+      tasks:
         items:
-          type: string
+          $ref: '#/definitions/api.TaskResponse'
         type: array
-      Title:
-        description: |-
-          Optional: updated title
-          example: Updated Post Title
-        maxLength: 100
+    type: object
+  api.TaskResponse:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+      user_id:
         type: string
     type: object
 info:
@@ -208,15 +95,15 @@ info:
     email: support@example.com
     name: API Support
     url: http://www.example.com/support
-  description: Blog API with JWT authentication
+  description: Task Management REST API with JWT authentication
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
-  title: Blog API
+  title: Task Management API
   version: "1.0"
 paths:
-  /authentication/login:
+  /auth/login:
     post:
       consumes:
       - application/json
@@ -227,217 +114,183 @@ paths:
         name: credentials
         required: true
         schema:
-          $ref: '#/definitions/api.AuthLoginUserRequest'
+          $ref: '#/definitions/api.LoginRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: Authentication successful
+          description: OK
           schema:
-            $ref: '#/definitions/api.AuthLoginWrappedResponse'
+            allOf:
+            - $ref: '#/definitions/api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.AuthResponse'
+              type: object
         "400":
-          description: Invalid request format
+          description: Bad Request
           schema:
             $ref: '#/definitions/api.Response'
         "401":
-          description: Invalid credentials
-          schema:
-            $ref: '#/definitions/api.Response'
-        "500":
-          description: Internal server error
+          description: Unauthorized
           schema:
             $ref: '#/definitions/api.Response'
       summary: User login
       tags:
       - Authentication
-  /blog-post:
-    get:
-      consumes:
-      - application/json
-      description: Get a single blog post by ID or all posts if ID is 0
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/api.GetPostsWrapperResponse'
-        "400":
-          description: Invalid request format
-          schema:
-            $ref: '#/definitions/api.Response'
-        "401":
-          description: Invalid credentials
-          schema:
-            $ref: '#/definitions/api.Response'
-        "404":
-          description: Post Not Found
-          schema:
-            $ref: '#/definitions/api.Response'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/api.Response'
-      security:
-      - ApiKeyAuth: []
-      summary: Get blog post(s)
-      tags:
-      - Blog
-  /blog-post/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Deletes blog post by ID
-      parameters:
-      - description: Post ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Post deleted successfully
-          schema:
-            $ref: '#/definitions/api.Response'
-        "400":
-          description: Invalid request format
-          schema:
-            $ref: '#/definitions/api.Response'
-        "401":
-          description: Invalid credentials
-          schema:
-            $ref: '#/definitions/api.Response'
-        "404":
-          description: Post Not Found
-          schema:
-            $ref: '#/definitions/api.Response'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/api.Response'
-      security:
-      - ApiKeyAuth: []
-      summary: Delete a blog post
-      tags:
-      - Blog
-    get:
-      consumes:
-      - application/json
-      description: Get a single blog post by ID or all posts if ID is 0
-      parameters:
-      - description: Post ID
-        in: path
-        name: id
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/api.GetPostsWrapperResponse'
-        "400":
-          description: Invalid request format
-          schema:
-            $ref: '#/definitions/api.Response'
-        "401":
-          description: Invalid credentials
-          schema:
-            $ref: '#/definitions/api.Response'
-        "404":
-          description: Post Not Found
-          schema:
-            $ref: '#/definitions/api.Response'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/api.Response'
-      security:
-      - ApiKeyAuth: []
-      summary: Get blog post(s)
-      tags:
-      - Blog
-    patch:
-      consumes:
-      - application/json
-      description: Updates blog post by ID
-      parameters:
-      - description: Post ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Updated post data
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/api.UpdatePostRequestBody'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Post updated successfully
-          schema:
-            $ref: '#/definitions/api.Response'
-        "400":
-          description: Invalid request format
-          schema:
-            $ref: '#/definitions/api.Response'
-        "401":
-          description: Invalid credentials
-          schema:
-            $ref: '#/definitions/api.Response'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/api.Response'
-      security:
-      - ApiKeyAuth: []
-      summary: Update an existing blog post
-      tags:
-      - Blog
+  /auth/register:
     post:
       consumes:
       - application/json
-      description: Adds a new blog post to the system
+      description: Register a new user
       parameters:
-      - description: Post details
+      - description: User details
         in: body
-        name: data
+        name: user
         required: true
         schema:
-          $ref: '#/definitions/api.AddPostRequest'
+          $ref: '#/definitions/api.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.Response'
+      summary: User registration
+      tags:
+      - Authentication
+  /tasks:
+    get:
+      description: Get list of tasks with pagination and filtering
+      parameters:
+      - description: Scroll ID for pagination
+        in: query
+        name: scroll_id
+        type: string
+      - default: 10
+        description: Items per page
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by status (pending, in_progress, completed)
+        in: query
+        name: status
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: Post deleted successfully
+          description: OK
           schema:
-            $ref: '#/definitions/api.Response'
-        "400":
-          description: Invalid request format
-          schema:
-            $ref: '#/definitions/api.Response'
+            allOf:
+            - $ref: '#/definitions/api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.TaskListResponse'
+              type: object
         "401":
-          description: Invalid credentials
-          schema:
-            $ref: '#/definitions/api.Response'
-        "404":
-          description: Post Not Found
-          schema:
-            $ref: '#/definitions/api.Response'
-        "500":
-          description: Internal server error
+          description: Unauthorized
           schema:
             $ref: '#/definitions/api.Response'
       security:
       - ApiKeyAuth: []
-      summary: Add a new blog post
+      summary: List tasks
       tags:
-      - Blog
+      - Tasks
+    post:
+      consumes:
+      - application/json
+      description: Create a new task
+      parameters:
+      - description: Task details
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/api.CreateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a task
+      tags:
+      - Tasks
+  /tasks/{id}:
+    delete:
+      description: Delete a task by ID
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete task
+      tags:
+      - Tasks
+    get:
+      description: Get a specific task by ID
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.TaskResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Response'
+      security:
+      - ApiKeyAuth: []
+      summary: Get task by ID
+      tags:
+      - Tasks
 schemes:
 - https
 - http
