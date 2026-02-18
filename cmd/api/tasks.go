@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"time"
 
 	"github.com/Roh-Bot/task-manager/internal/application"
 	"github.com/Roh-Bot/task-manager/internal/store"
@@ -32,7 +33,15 @@ type TaskListResponse struct {
 type TasksListQuery struct {
 	Limit    int     `query:"limit" validate:"omitempty,min=1,max=100"`
 	Status   string  `query:"status" validate:"omitempty,oneof=pending in_progress completed"`
-	ScrollId *string `query:"scroll_id" validate:"omitempty,uuid"`
+	ScrollId *string `query:"scroll_id" validate:"omitempty,uuid7"`
+}
+
+type GetTaskParams struct {
+	ID string `param:"id" validate:"required,uuid7"`
+}
+
+type DeleteTaskParams struct {
+	ID string `param:"id" validate:"required,uuid7"`
 }
 
 // @Summary Create a task
@@ -146,9 +155,23 @@ func (s *Server) listTasks(ctx echo.Context) error {
 func (s *Server) getTask(ctx echo.Context) error {
 	userID := ctx.Get("user_id").(string)
 	isAdmin := ctx.Get("is_admin").(bool)
-	id := ctx.Param("id")
 
-	task, err := s.App.Task.GetByID(ctx.Request().Context(), id, userID, isAdmin)
+	params := new(GetTaskParams)
+
+	if err := ctx.Bind(params); err != nil {
+		return s.badRequest(ctx, err, err.Error())
+	}
+
+	if err := s.Validator.Struct(params); err != nil {
+		return s.badRequest(ctx, err, validationToErrorMessage(err))
+	}
+
+	task, err := s.App.Task.GetByID(
+		ctx.Request().Context(),
+		params.ID,
+		userID,
+		isAdmin,
+	)
 	if err != nil {
 		if errors.Is(err, store.ErrTaskNotFound) {
 			return s.notFound(ctx, err.Error())
@@ -162,8 +185,8 @@ func (s *Server) getTask(ctx echo.Context) error {
 		Description: task.Description,
 		Status:      task.Status,
 		UserID:      task.UserID,
-		CreatedAt:   task.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-		UpdatedAt:   task.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+		CreatedAt:   task.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   task.UpdatedAt.Format(time.RFC3339),
 	}
 
 	return s.writeResponse(ctx, response)
@@ -181,9 +204,17 @@ func (s *Server) getTask(ctx echo.Context) error {
 func (s *Server) deleteTask(ctx echo.Context) error {
 	userID := ctx.Get("user_id").(string)
 	isAdmin := ctx.Get("is_admin").(bool)
-	id := ctx.Param("id")
+	params := new(DeleteTaskParams)
 
-	if err := s.App.Task.Delete(ctx.Request().Context(), id, userID, isAdmin); err != nil {
+	if err := ctx.Bind(params); err != nil {
+		return s.badRequest(ctx, err, err.Error())
+	}
+
+	if err := s.Validator.Struct(params); err != nil {
+		return s.badRequest(ctx, err, validationToErrorMessage(err))
+	}
+
+	if err := s.App.Task.Delete(ctx.Request().Context(), params.ID, userID, isAdmin); err != nil {
 		return s.internalServerError(ctx, err)
 	}
 
